@@ -24,4 +24,14 @@
    - Aprovar ou reprovar a proposta
 
 # Guia para Execução do Projeto:
-   - 
+
+
+
+## Tecnologias Utilizadas:
+
+- **Laravel** (PHP) – Backend e API
+- **Vue.js** – Frontend
+- **MySQL** – Banco de dados
+- **Git/GitHub** – Controle de versão
+
+Autor: Gabriel J. S. Costa
