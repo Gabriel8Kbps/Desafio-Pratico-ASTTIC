@@ -15,5 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'user']);
 
     // Futuras rotas protegidas (ex: propostas, disciplinas)
-     Route::apiResource('propostas', PropostaCursoController::class);
+    Route::apiResource('propostas', PropostaCursoController::class);
+    Route::put('propostas/{proposta}/avaliar', [PropostaCursoController::class, 'avaliar']);
+    Route::put('propostas/{proposta}/decidir', [PropostaCursoController::class, 'decidir']);
 });
