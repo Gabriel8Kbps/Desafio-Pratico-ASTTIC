@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
+
 class AuthController extends Controller
 {
     /**
@@ -21,7 +22,7 @@ class AuthController extends Controller
             'nome' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:usuarios',
             'senha' => 'required|string|min:8|confirmed',
-            'tipo' => 'required|in:submissor,avaliador,decisor', // Valida o tipo de usuário
+            'tipo' => 'required|in:submissor,avaliador,decisor',
         ]);
 
         $usuario = Usuario::create([
@@ -31,7 +32,6 @@ class AuthController extends Controller
             'tipo' => $request->tipo,
         ]);
 
-        // Cria um token para o usuário (opcional no registro, mas útil para auto-login)
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -55,21 +55,15 @@ class AuthController extends Controller
             'senha' => 'required|string',
         ]);
 
-        //debug
-                  //  dd([
-                  //      'request_email' => $request->email,
-                  //      'request_senha' => $request->senha,
-                  //     'attempt_result' => Auth::attempt($request->only('email', 'senha'))
-                  //  ]);
+        $usuario = Usuario::where('email', $request->email)->first();
 
-        if (!Auth::attempt($request->only('email', 'senha'))) {
+        if (!$usuario || !Hash::check($request->senha, $usuario->senha)) {
             return response()->json([
                 'message' => 'Credenciais inválidas.'
             ], 401);
         }
 
-        $usuario = Auth::user(); 
-        // $usuario->tokens()->delete();
+
         $token = $usuario->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -79,10 +73,15 @@ class AuthController extends Controller
         ]);
     }
 
-
+    /**
+     * Fazer logout do usuário (revogar o token atual).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout(Request $request)
     {
-        
+        // Revoga o token atual que está sendo usado para a requisição
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
@@ -91,7 +90,7 @@ class AuthController extends Controller
     }
 
     /**
-     * informações do usuário autenticado.
+     * Obter informações do usuário autenticado.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
