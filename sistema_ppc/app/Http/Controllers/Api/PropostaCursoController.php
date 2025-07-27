@@ -175,5 +175,147 @@ class PropostaCursoController extends Controller
         ]);
     }
 
-    
+        /**
+     * Avalia uma proposta de curso, adicionando comentários e mudando o status.
+     * Apenas avaliadores podem usar.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\PropostaCurso  $proposta
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function avaliar(Request $request, PropostaCurso $proposta)
+    {
+        $user = Auth::user();
+
+        // 1. Autorização: Apenas 'avaliador' pode avaliar
+        if ($user->tipo !== 'avaliador') {
+            return response()->json([
+                'message' => 'Você não tem permissão para avaliar propostas de curso.'
+            ], 403);
+        }
+
+        // 2. Validação: Comentário e novo status são obrigatórios
+        $validator = Validator::make($request->all(), [
+            'comentario' => 'required|string',
+            'status_novo' => 'required|in:ajustes_requeridos,em_aprovacao', // Status permitidos para avaliação
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Erro de validação.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // 3. Verifica o status atual da proposta para permitir avaliação
+        // Um avaliador só pode interagir com propostas 'submetida' ou 'em_avaliacao'
+        $currentStatus = $proposta->historicoStatus()->latest('data_status')->first()->status;
+        if (!in_array($currentStatus, ['submetida', 'em_avaliacao'])) {
+            return response()->json([
+                'message' => "Esta proposta não pode ser avaliada neste momento (Status atual: {$currentStatus})."
+            ], 400); // Bad Request
+        }
+
+        DB::beginTransaction();
+        try {
+            // Atualiza o comentário do avaliador e atribui o avaliador
+            $proposta->comentario_avaliador = $request->comentario;
+            $proposta->id_avaliador = $user->id; // Atribui o avaliador atual
+            $proposta->save();
+
+            // Registra o novo status no histórico
+            StatusProposta::create([
+                'id_proposta' => $proposta->id,
+                'status' => $request->status_novo,
+                'data_status' => now(),
+                'observacao' => "Avaliação: {$request->comentario}",
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Proposta avaliada com sucesso!',
+                'proposta' => $proposta->load('historicoStatus', 'avaliador')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erro ao avaliar a proposta.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Decide (aprova ou reprova) uma proposta de curso.
+     * Apenas decisores podem usar.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\PropostaCurso  $proposta
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function decidir(Request $request, PropostaCurso $proposta)
+    {
+        $user = Auth::user();
+
+        // 1. Autorização: Apenas 'decisor' pode decidir
+        if ($user->tipo !== 'decisor') {
+            return response()->json([
+                'message' => 'Você não tem permissão para decidir sobre propostas de curso.'
+            ], 403);
+        }
+
+        // 2. Validação: Comentário e status de decisão são obrigatórios
+        $validator = Validator::make($request->all(), [
+            'comentario' => 'required|string',
+            'status_final' => 'required|in:aprovada,rejeitada', // Status permitidos para decisão final
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Erro de validação.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // 3. Verifica o status atual da proposta para permitir decisão
+        // Um decisor só pode decidir sobre propostas 'em_aprovacao'
+        $currentStatus = $proposta->historicoStatus()->latest('data_status')->first()->status;
+        if ($currentStatus !== 'em_aprovacao') {
+            return response()->json([
+                'message' => "Esta proposta não pode ser decidida neste momento (Status atual: {$currentStatus})."
+            ], 400); // Bad Request
+        }
+
+        DB::beginTransaction();
+        try {
+            // Atualiza o comentário do decisor e atribui o decisor final
+            $proposta->comentario_decisor = $request->comentario;
+            $proposta->id_decisor_final = $user->id; // Atribui o decisor final
+            $proposta->save();
+
+            // Registra o novo status final no histórico
+            StatusProposta::create([
+                'id_proposta' => $proposta->id,
+                'status' => $request->status_final,
+                'data_status' => now(),
+                'observacao' => "Decisão final: {$request->comentario}",
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "Proposta {$request->status_final} com sucesso!",
+                'proposta' => $proposta->load('historicoStatus', 'decisorFinal')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erro ao tomar a decisão sobre a proposta.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
