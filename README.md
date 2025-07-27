@@ -2,7 +2,7 @@
 
 ## Sistema PPC - Plano Pedagógico do Curso
 
-    O **Protótipo de Sistema WEB** é um projeto desenvolvido como parte do processo seletivo para estágio na Assessoria Técnica de Tecnologia da Informação e Comunicação (ASTTIC/PROEG) da Universidade Federal do Pará e tem como objetivo permitir:
+   - O **Protótipo de Sistema WEB** é um projeto desenvolvido como parte do processo seletivo para estágio na Assessoria Técnica de Tecnologia da Informação e Comunicação (ASTTIC/PROEG) da Universidade Federal do Pará e tem como objetivo permitir:
 
 ## Submissão de propostas de cursos por unidades acadêmicas, contendo:
   
