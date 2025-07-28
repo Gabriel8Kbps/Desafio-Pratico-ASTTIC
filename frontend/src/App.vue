@@ -49,14 +49,22 @@ const handleApiError = (err: any, msg: string) => { clearMessages(); error.value
 const authRequest = async (path: string, data: any, successMsg: string) => {
   try {
     const res = await axios.post(`${API_URL}/${path}`, data);
-    clearMessages(); message.value = successMsg;
+    clearMessages();
+    message.value = successMsg;
     if (path === 'login') {
-      authToken.value = res.data.access_token; localStorage.setItem('authToken', authToken.value); setAuthHeader();
-      currentUser.value = res.data.user as User; isLoggedIn.value = true;
+      authToken.value = res.data.access_token;
+      localStorage.setItem('authToken', authToken.value);
+      setAuthHeader();
+      currentUser.value = res.data.user as User;
+      isLoggedIn.value = true;
       fetchProposals();
     }
-    showAuthModal.value = false; // Close modal on success
-  } catch (err: any) { handleApiError(err, `Erro ao ${path === 'register' ? 'registrar' : 'logar'}.`); }
+    showAuthModal.value = false; // <<< Mantenha esta linha para FECHAR O MODAL APENAS NO SUCESSO
+  } catch (err: any) {
+    handleApiError(err, `Erro ao ${path === 'register' ? 'registrar' : 'logar'}.`);
+    // O MODAL NÃO DEVE FECHAR AQUI EM CASO DE ERRO.
+    // O showAuthModal.value permanece true para que o usuário possa tentar novamente.
+  }
 };
 
 const registerUser = () => authRequest('register', { nome: authName.value, email: authEmail.value, senha: authPassword.value, senha_confirmation: authPassword.value, tipo: authType.value }, 'Registro bem-sucedido!');
@@ -145,16 +153,16 @@ onMounted(() => {
           <div v-if="currentUser?.tipo === 'submissor'" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
             <h3 style="margin-top: 0; color: black;">Submeter Nova Proposta</h3>
             <div style="margin-bottom: 10px;"><label style="color: black;">Nome do Curso: <br><input type="text" v-model="newProposal.nome" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
-            <div style="margin-bottom: 10px;"><label style="color: black;">Carga Horária Total: <br><input type="number" v-model="newProposal.carga_horaria_total" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
-            <div style="margin-bottom: 10px;"><label style="color: black;">Semestres: <br><input type="number" v-model="newProposal.quantidade_semestres" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
+            <div style="margin-bottom: 10px;"><label style="color: black;">Carga Horária Total: <br><input type="number" v-model="newProposal.carga_horaria_total" min="1" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
+            <div style="margin-bottom: 10px;"><label style="color: black;">Semestres: <br><input type="number" min="1" v-model="newProposal.quantidade_semestres" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
             <div style="margin-bottom: 10px;"><label style="color: black;">Justificativa: <br><textarea v-model="newProposal.justificativa" style="width: calc(100% - 16px); padding: 8px; min-height: 60px; border: 1px solid #ccc; background-color: #eee; color: black;"></textarea></label></div>
             <div style="margin-bottom: 10px;"><label style="color: black;">Impacto Social: <br><textarea v-model="newProposal.impacto_social" style="width: calc(100% - 16px); padding: 8px; min-height: 60px; border: 1px solid #ccc; background-color: #eee; color: black;"></textarea></label></div>
 
             <h4 style="margin-top: 15px; color: black;">Disciplinas:</h4>
             <div v-for="(d, i) in newProposal.disciplinas" :key="i" style="border: 1px dashed #ccc; padding: 10px; margin-bottom: 10px; background-color: #f8f8f8;">
               <div style="margin-bottom: 5px;"><label style="color: black;">Nome: <br><input type="text" v-model="d.nome" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
-              <div style="margin-bottom: 5px;"><label style="color: black;">Carga Horária: <br><input type="number" v-model="d.carga_horaria" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
-              <div style="margin-bottom: 5px;"><label style="color: black;">Semestre: <br><input type="number" v-model="d.semestre" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
+              <div style="margin-bottom: 5px;"><label style="color: black;">Carga Horária: <br><input type="number" min="1" v-model="d.carga_horaria" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
+              <div style="margin-bottom: 5px;"><label style="color: black;">Semestre: <br><input type="number" min="1" v-model="d.semestre" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
               <button @click="newProposal.disciplinas.splice(i, 1)" style="background-color: #555; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer;">Remover</button>
             </div>
             <button @click="newProposal.disciplinas.push({ nome: '', carga_horaria: 0, semestre: 0 })" style="background-color: #ccc; color: black; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
@@ -176,7 +184,7 @@ onMounted(() => {
 
           <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
             <h3 style="margin-top: 0; color: black;">Detalhes e Ações da Proposta</h3>
-            <div style="margin-bottom: 10px;"><label style="color: black;">ID da Proposta: <br><input type="number" v-model.number="selectedProposalId" @input="fetchProposalDetails" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
+            <div style="margin-bottom: 10px;"><label style="color: black;">ID da Proposta: <br><input type="number" min="1" v-model.number="selectedProposalId" @input="fetchProposalDetails" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; background-color: #eee; color: black;" /></label></div>
 
             <div v-if="proposalDetails">
               <h4 style="margin-top: 15px; color: black;">Proposta ID: {{ proposalDetails.id }}</h4>
