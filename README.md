@@ -23,15 +23,108 @@
 
    - Aprovar ou reprovar a proposta
 
-# Guia para Execução do Projeto:
-
-
-
 ## Tecnologias Utilizadas:
 
 - **Laravel** (PHP) – Backend e API
 - **Vue.js** – Frontend
 - **MySQL** – Banco de dados
 - **Git/GitHub** – Controle de versão
+
+## Guia para Execução do Projeto:
+
+# Pré-requisitos
+
+- Antes de começar, certifique-se de ter o seguinte instalado no seu computador:
+
+- Node.js (versão 18 ou superior) e npm (gerenciador de pacotes do Node.js).
+
+- PHP (versão 8.1 ou superior) e Composer (gerenciador de dependências PHP).
+
+- Um servidor de banco de dados MySQL em execução (por exemplo, via XAMPP, WAMP, Docker ou instalação direta).
+
+# Configuração do Backend (Laravel API)
+
+- Clone o Repositório do Backend:
+
+```
+
+   git clone https://github.com/Gabriel8Kbps/Desafio-Pratico-ASTTIC.git
+   cd sistema_ppc # Navegue para a pasta clonada
+
+```
+
+- Instale as Dependências do Laravel:
+
+```
+
+   composer install
+
+```
+
+- Configure o Ambiente:
+
+```
+
+   cp .env.example .env
+
+```
+
+Abra o arquivo .env e configure as seguintes linhas com seus dados:
+
+```
+
+DB_DATABASE=seu_nome_de_banco
+DB_USERNAME=seu_usuario_mysql
+DB_PASSWORD=sua_senha_mysql
+
+```
+
+- Gere a Chave da Aplicação:
+
+```
+php artisan key:generate
+```
+
+- Execute as Migrações e Semeie o Banco:
+
+```
+php artisan migrate
+php artisan db:seed # Caso queira adicionar dados de teste
+```
+
+- Inicie o Servidor Laravel:
+
+```
+php artisan serve
+```
+Mantenha este terminal aberto enquanto usa o sistema.
+
+# Configuração do Frontend (Vue.js)
+
+- Mude para a pasta de aplicação
+
+```
+cd sistema_ppc_frontend
+npm install
+```
+
+- Inicie o Servidor de Desenvolvimento Vue.js:
+
+```
+npm run dev
+```
+
+# Acessando o Sistema
+
+- Com ambos os servidores (backend e frontend) rodando, abra o navegador e acesse o endereço frontend:
+
+```
+
+http://localhost:5173
+
+```
+
+
+
 
 Autor: Gabriel J. S. Costa
