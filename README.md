@@ -78,6 +78,25 @@ DB_USERNAME=seu_usuario_mysql
 DB_PASSWORD=sua_senha_mysql
 
 ```
+Abra o XAMPP,vá em config > my.ini e altere a o trecho:
+
+```
+#The following options will be passed to all MySQL clients
+
+[client]
+
+# password
+
+port
+
+= <sua_senha_mysql>
+
+= 3306
+
+socket
+
+= "C:/xampp/mysql/mysql.sock"
+```
 
 - Gere a Chave da Aplicação:
 
